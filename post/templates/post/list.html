@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}لیست پست ها{% endblock %}
+{% block content %}
+<form id="form-request" action="" method="get">
+    <input type="search" name="title" id="" value="{{ request.GET.title}}">
+    <button type="submit"><h4>search</h4></button>
+</form>
+{% for post in posts %}
+{{post.title}}
+<a href="{{post.get_absolute_url}}">detail</a>
+{% if request.user.is_staff or request.user == post.author %}
+<a href="{{post.post_update_url}}">update</a>
+<div class="btn-user-id" data-csrf-token='{{ csrf_token }}' data-url="{% url 'post:delete_post' %}" data-user-id={{post.id}}>delete</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

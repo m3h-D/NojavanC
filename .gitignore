@@ -1,0 +1,14 @@
+env/
+*.env
+secret.py
+my.cnf
+logs/
+__pycache__/
+*.sqlite3
+# migrations/
+media/
+*.py.*
+mysqlclient-*.whl
+/my_static/
+.vscode/
+.vscode/settings.json

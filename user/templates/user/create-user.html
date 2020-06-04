@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}ایجاد کاربر{% endblock %}
+{% block content %}
+<div>
+    <form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+        {{user_form.as_p}}
+        <button type="submit">ثبت</button>
+    </form>
+</div>
+{% endblock %}

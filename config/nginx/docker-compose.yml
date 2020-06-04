@@ -1,0 +1,26 @@
+version: '3'
+
+
+services:
+    nginx:
+        container_name: nginx
+        build: 
+            context: .
+            dockerfile: Dockerfile
+        ports: 
+            - "80:80"
+        volumes: 
+            - nojavanclub_static_volume:/nojavanclub/static
+            - nojavanclub_files_volume:/nojavanclub/media
+        networks:
+            - nginx_network
+
+volumes: 
+    nojavanclub_static_volume:
+        external: true
+    nojavanclub_files_volume:
+        external: true
+
+networks:
+    nginx_network:
+        external: true

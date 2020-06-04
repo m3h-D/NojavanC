@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}ویرایش پست {{update_form.instance.title}}{% endblock %}
+{% block content %}
+<form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+    {{update_form.media}}
+    {{update_form.as_p}}
+    <button type="submit">ثبت</button>
+</form>
+{% endblock %}

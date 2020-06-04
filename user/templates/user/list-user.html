@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block title %}لیست کاربران{% endblock %}
+{% block content %}
+<div>
+    <a href="{% url 'user:create_user' %}">اضافه کردن کاربر</a>
+</div>
+<hr>
+<div>
+<ul>
+    <li>
+        <label for="the_act">action:</label>
+        
+        <select id="the_act" name="action" class="action">
+            <option >انتخاب
+                کنید</option>
+                <option value="delete">delete</option>
+                <option value="export">export</option>
+                <option value="message">message</option>
+            </select>
+        </li>
+        <li>
+
+            <!-- <label for="bulk-title">message title:</label> -->
+            <!-- <input type="hidden" name="chatroom_id" id="chatroom-id" value=""> -->
+        </li>
+        <li>
+            <label for="bulk-message">content:</label>
+
+            <input type="text" name="full_content" id="bulk-message">
+        </li>
+    <div data-csrf-token="{{ csrf_token }}" data-url="{% url 'user:user_action' %}" data-action="" class="btn-ajax-action">action</div>
+</ul>
+</div>
+
+<form id="form-request" action="" method="get">
+    <div>
+        <ul>
+            
+            
+            
+            
+            <li>
+                <label for="first_name">first_name:</label>
+                <input type="search" name="first_name" id="first_name" value="{{ request.GET.first_name }}">
+            </li>
+            <li>
+                <label for="last_name">last_name:</label>
+                <input type="search" name="last_name" id="last_name" value="{{ request.GET.last_name }}">
+            </li>
+            <li>
+                <label for="username">username:</label>
+                <input type="search" name="username" id="username" value="{{ request.GET.username }}">
+            </li>
+            <li>
+                <label for="from_date">Birthday(from date):</label>
+                <input type="date" id="from_date" name="profile__birth_date___from_date" value="{{request.GET.profile__birth_date___from_date}}"></li>
+            <li>
+                <label for="to_date">Birthday(to date):</label>
+                <input type="date" id="to_date" name="profile__birth_date___to_date" value="{{request.GET.profile__birth_date___to_date}}"></li>
+            <li>
+    <select name="is_accepted">
+        <option
+            value="">انتخاب
+            کنید</option>
+        <option {% if request.GET.is_accepted == 'True' %} selected {% endif %} value="True">accepted</option>
+        <option {% if request.GET.is_accepted == 'False' %} selected {% endif %} value="False">not accepted</option>
+    </select>
+            </li>
+            <li>
+    <select name="sex">
+        <option
+            value="">انتخاب
+            کنید</option>
+        <option {% if request.GET.sex == 'male' %} selected {% endif %} value="male">male</option>
+        <option {% if request.GET.sex == 'female' %} selected {% endif %} value="female">female</option>
+    </select>
+            </li>
+        </ul>
+        
+        
+    </div>
+
+
+    <button type="submit"><h4>search</h4></button>
+</form>
+<div class="ajax-content">
+    <div class="ajax-load-content">
+
+        <!-- ------------ all users --------------- -->
+
+        {% for user in users %}
+
+        <!-- ---- user information ------------------------- -->
+        {{user.username}}
+        <!-- --------------------------------------- -->
+        
+        
+        <!-- ---- if requested user is staff ------------------------- -->
+        {% if request.user.is_staff %}
+
+        <input class="checkbox-action" type="checkbox" name="checkbox_action" id="checkbox-action" value="{{user.id}}">
+        <input class="chatroom-id" type="hidden" name="room_ids" id="chatroom-id" value="{% if request.user.chatroomreceivers == user.chatroomreceivers %}{{user.chatroomreceivers.first}}{% endif %}">
+
+        <!-- ---- accept or decline user ------------------------- -->
+        {% if user.is_accepted == True %}
+        <div class="btn-user-id" data-csrf-token='{{ csrf_token }}' data-url="{% url 'user:accept_owner' %}" data-user-id={{user.id}}>decline</div>
+        {% else %}
+        <div class="btn-user-id" data-csrf-token='{{ csrf_token }}' data-url="{% url 'user:accept_owner' %}" data-user-id={{user.id}}>accept</div>
+        {% endif %}
+        <!-- --------------------------------------- -->
+        
+        
+        <!-- -------- edit user -------------------- -->
+        <a href="{% url 'user:edit_user' user.username %}">edit</a>
+        <!-- --------------------------------------- -->
+        
+        <!-- -------- delete user -------------------- -->
+        <div class="btn-user-id" data-csrf-token='{{ csrf_token }}' data-url="{% url 'user:delete_user' %}" data-user-id={{user.id}}>delete</div>
+        <!-- --------------------------------------- -->
+        
+        {% endif %}
+        <!-- --------------------------------------- -->
+        
+        
+        
+        <!-- ------------- follow unfollow user ------------------------- -->
+        <div class="btn-user-id" data-csrf-token='{{ csrf_token }}' data-url="{% url 'user:follow_user' %}" data-user-id={{user.id}}>{% if user in request.user.profile.following.all %}Unfollow{% else %} Follow{% endif %}</div>
+        <!-- --------------------------------------- -->
+        
+        <!-- --------------- add or remove from group ------------------------- -->
+        {% if request.user.groupowner %}
+            {% for group in request.user.groupowner.all %}
+                {% if user in group.members.all %}
+                <div class="btn-user-id" data-csrf-token='{{ csrf_token }}' data-url="{% url 'user:add_to_group' %}" data-user-id={{user.id}} data-group-slug={{group.slug}}>remove to {{group.title}} group</div>
+                {% else %}
+                <div class="btn-user-id" data-csrf-token='{{ csrf_token }}' data-url="{% url 'user:add_to_group' %}" data-user-id={{user.id}} data-group-slug={{group.slug}}>add to {{group.title}} group</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <!-- --------------------------------------- -->
+        
+        <!-- --------------- send message ------------------------- -->
+        <!-- <form action="{% url 'message:send_message' %}" method="post">{% csrf_token %}
+            <input type="text" name="content" id="">
+            <button type="submit">ارسال</button>
+        </form> -->
+        <!-- --------------------------------------- -->
+        {% endfor %}
+    </div>
+</div>
+
+
+
+{% endblock %}
+{% block js %}
+<script>
+    let userIds = new Array();
+    let roomIds = new Array();
+    $('.chatroom-id').each(function(){
+    if ($('.chatroom-id').val().length > 0){
+        roomIds.push(this.$('.chatroom-id').val()); 
+        // values.push({ name: this.name, value: this.value }); 
+    }; 
+    });
+    console.log(roomIds)
+    
+    $(document).on('change', '.action', function () {
+        var action = $('.action').val();
+        console.log(action);
+
+        $(this).parents(0).find(".btn-ajax-action").attr('data-action',action);
+    });
+    $(document).on('change', '.checkbox-action', function () {
+        let val =$(this).val();
+        if ($(this).is(":checked"))
+        {
+            userIds.push($(this).val()); 
+            console.log(userIds);
+        }
+    });
+
+
+        
+    $(document).on('click', '.btn-ajax-action', function () {
+        let content = $('#bulk-message').val();
+        // let chatroomId = $('#chatroom-id').val();
+        let userId = userIds
+        let action = $(this).data('action')
+        let url = $(this).data('url');
+        let csrfToken = $(this).data('csrf-token');
+            $.ajax(
+            {
+                url: url,
+                method: 'POST',
+                traditional: true,
+                data: { ids: userId, action: action, chatroom_id: roomIds, content: content, csrfmiddlewaretoken: csrfToken },
+                success: function (data) {
+                    if (action == 'export' || action == 'message'){
+                        window.location = data.response.redirect;
+                        $("#ajax-response").html(data.response.message);
+                        $("#ajax-response").show()
+                    }else{
+                        console.log(userId);
+                        $("#ajax-response").html(data.response);
+                        $("#ajax-response").show()
+                    };
+                    
+                }
+            })
+        });
+</script>
+{% endblock %}

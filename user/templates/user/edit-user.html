@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}اصلاح کاربر{% endblock %}
+{% block content %}
+<div>
+    <form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+        <h3>{{edit_user_form.username.help_text}}</h3>
+        {{edit_user_form.as_p}}
+        {{edit_profile_form.as_p}}
+        <button type="submit">ثبت</button>
+    </form>
+</div>
+{% endblock %}

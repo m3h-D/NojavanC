@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}صندوق پیام{% endblock %}
+{% block content %}
+
+{% for room in all_rooms %}
+{% if request.user.is_staff %}
+
+
+{{room}}
+<a href="{% url 'message:chat_room' room.id %}">جزئیات</a>
+
+
+{% else %}
+{%for chat in room.message.all %}
+{% ifchanged room.pk %}
+{% if chat.sender == request.user or chat.receiver == request.user %}
+
+
+
+{{room}}
+<a href="{% url 'message:chat_room' room.id %}">جزئیات</a>
+
+
+{% endif %}
+{% endifchanged %}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endblock %}

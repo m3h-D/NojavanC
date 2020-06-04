@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load message_tags %}
+
+{% block title %}گفتگو ({% for receiver in room.receivers.all %}{% if not request.user == receiver %}{{receiver.get_full_name}}{% endif %}{% endfor %}){% endblock %}
+
+{% block content %}
+
+
+{% for chat in chats %}
+{{chat.sender}}
+<div>
+
+    {{chat.content}}
+    
+</div>
+{% empty %}
+{% endfor %}
+<form action="{% url 'message:send_message' room.id %}" method="post">{% csrf_token %}
+    <input type="text" name="content" id="">
+    <!-- <input type="hidden" name="receiver_id" value="{% for user in chats %}{% if user.receiver != request.user %}{% ifchanged %}{{user.receiver.pk}}{% endifchanged%}{% endif %}{% endfor %}">
+    <input type="hidden" name="chat_room_id" value="{{room.pk}}"> -->
+    <button type="submit">ارسال</button>
+</form>
+{% endblock %}

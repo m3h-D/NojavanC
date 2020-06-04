@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}ایجاد گروه{% endblock %}
+{% block content %}
+<div>
+    <form action="" enctype="multipart/form-data" method="post">{% csrf_token %}
+        {% if request.user.is_staff %}
+        {{group_form.owner.label}}
+        {{group_form.owner}}
+        {% endif %}
+        <div>
+            {{group_form.title.label}}
+            {{group_form.title}}
+
+        </div>
+        <div>
+            {{group_form.slug.label}}
+            {{group_form.slug}}
+
+        </div>
+        <div>
+            {{group_form.members.label}}
+            {{group_form.members}}
+
+        </div>
+        <div>
+            {{group_form.logo.label}}
+            {{group_form.logo}}
+
+        </div>
+        <div>
+            {{group_form.cover.label}}
+            {{group_form.cover}}
+
+        </div>
+        <div>
+            {{group_form.description.label}}
+            {{group_form.description}}
+
+        </div>
+        <button type="submit">ثبت</button>
+    </form>
+</div>
+{% endblock %}

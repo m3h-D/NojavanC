@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+  nojavanclub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports: 
+      - "8000": "8000"
+    volumes: 
+      - ../nojavanclub:/nojavanclub
+      - nojavanclub_static_volume:/nojavanclub/static
+      - nojavanclub_files_volume:/nojavanclub/media
+    command: "python manage.py wait_for_db && python manage.py collectstatic --no-input && python manage.py migrate"
+    restart: always
+    networks:
+      - nojavan_network
+      - nginx_network
+    depends_on:
+      - nojavan_postgresql # yani harvaght postgres umad bala in app ham ejra she(nojavanclub)
+    # environment: 
+    #   - DB_HOST=nojavan_postgresql
+    #   - DB_NAME=nojavan_db
+    #   - DB_USER=postgres
+    #   - DB_PASSWORD=supersecret123
+
+
+  nojavan_postgresql:
+    image: postgres
+    container_name: nojavan_postgresql
+    volumes:
+      - nojavan_postgresql:/var/lib/postgresql/data
+    restart: always
+    env_file: .env
+    ports:
+      - "5431": "5432"
+    networks:
+      - nojavan_network
+    # environment: 
+    #   - POSTGRES_DB=nojavan_db
+    #   - POSTGRES_USER=postgres
+    #   - POSTGRES_PASSWORD=supersecret123
+
+  redis:
+    image: "redis:alpine"
+
+
+  celery:
+    build: .
+    command: celery -A nojavan worker -l info
+    volumes:
+      - ../nojavanclub:/nojavanclub
+    depends_on:
+      - nojavan_postgresql
+      - redis
+  celery-beat:
+    build: .
+    command: celery -A nojavan beat -l info
+    volumes:
+      - ../nojavanclub:/nojavanclub
+    depends_on:
+      - nojavan_postgresql
+      - redis
+
+volumes:
+  nojavan_postgresql:
+    external: true
+  nojavanclub_static_volume:
+    external: true
+  nojavanclub_files_volume:
+    external: true  
+networks:
+  nojavan_network:
+    external: true
+  nginx_network:
+    external: true

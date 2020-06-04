@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}اعتبار سنجی{% endblock %}
+{% block content %}
+<div>
+    <form action="" method="post">{% csrf_token %}
+        {{verify_form.as_p}}
+        <button type="submit">ثبت</button>
+    </form>
+    <div class="resend-sms">ارسال کد جدید</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    jQuery(document).ready(function($){
+    $(document).on('click', '.resend-sms', function () {
+        let url = "{% url 'user:send_sms_again' %}";
+        let csrfToken = "{{csrf_token}}";
+        
+            $.ajax(
+            {
+                url: url,
+                method: 'POST',
+                data: {csrfmiddlewaretoken:  csrfToken},
+                success: function (data) {
+                    $("#ajax-response").html(data.response);
+                    $("#ajax-response").show();
+                    // $(".ajax-content").load(" .ajax-load-content");
+                    
+                }
+            }
+            )
+        });
+});
+</script>
+
+{% endblock%}

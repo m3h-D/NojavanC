@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}جستجو{% endblock %}
+{% block content %}
+{% for result in resluts %}
+{{result}}
+<a href="{{result.get_absolute_url}}">detail</a>
+{% endfor %}
+{% endblock %}
