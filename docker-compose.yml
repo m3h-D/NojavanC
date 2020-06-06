@@ -23,8 +23,8 @@ services:
       - nojavan_network
       - nginx_network
     depends_on:
-      - celery
-      - celery-beat
+      # - celery
+      # - celery-beat
       - nojavan_postgresql
       - redis
 
@@ -46,38 +46,41 @@ services:
   redis:
     container_name: 'redis_container'
     image: "redis:latest"
-    restart: always
-    ports: 
-      - "6379:6379"
-    command: "redis-server"
+    command: redis-server
+    networks:
+      - nojavan_network
 
 
 
   celery:
-    build:
-      context: .
-    command: celery -A nojavan worker -l debug
-    volumes:
-      - .:/nojavanclub
-    # environment:
-    #   TEST_BROKER: redis://redis:6379
+    build: .
+    command: sh -c "celery -A nojavan worker -l info"
+    container_name: celery_worker
+    env_file: .env
     depends_on:
+      - nojavanclub
       - nojavan_postgresql
       - redis
-    restart: always
-    env_file: .env
-    
+    volumes:
+      - .:/nojavanclub
+    restart: on-failure
+    networks:
+      - nojavan_network
+  
   celery-beat:
     build:
       context: .
-    command: celery -A nojavan beat -l debug
+    command: sh -c "celery -A nojavan beat -l info"
     volumes:
       - .:/nojavanclub
     depends_on:
+      - nojavanclub
       - nojavan_postgresql
       - redis
-    restart: always
+    restart: on-failure
     env_file: .env
+    networks:
+      - nojavan_network
     
 
 volumes:

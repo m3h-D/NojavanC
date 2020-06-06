@@ -24,16 +24,7 @@ RUN pip install -r requirments.txt
 
 
 RUN useradd -ms /bin/bash m3h_D
-# RUN adduser --disabled-password m3h_D
-# RUN adduser -D m3h_D
 RUN chown -R m3h_D /nojavanclub/
 RUN chown -R 755 /nojavanclub/
 
-RUN chown -R celery:celery /var/log/celery/
-RUN chown -R celery:celery /var/run/celery/
 USER m3h_D
-
-
-# CMD ['gunicorn', "--chdir", "nojavanclub", "--bind", ":8000", "nojavan.wsgi:application"]
-
-

@@ -147,7 +147,7 @@ def forget_password(request):
                 Uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = account_activation_token.make_token(user)
                 domain = f"{urlsplit(request.build_absolute_uri(None)).scheme}://{get_current_site(request)}"
-                send_email.delay()
+                send_email.delay(domain=domain, to=[user.email], template=template, sub=sub, messages=[Uid, token])
                 # Thread(target=send_email, args=(request,), kwargs={"domain": domain,
                 #     "to": [user.email] , 'template': template, 'sub': sub, 'messages': [Uid, token]}).start()
                 messages.success(request, 'لینک فراموشی برای ایمیل شما ارسال شد', extra_tags='forget_password_success')
