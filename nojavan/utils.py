@@ -4,7 +4,8 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.utils.text import slugify
 from functools import wraps
-from user.models import User
+# from user.models import User
+# from django.contrib.auth import get_user_model
 from datetime import datetime
 from django.http import HttpResponse
 from openpyxl import Workbook
@@ -12,6 +13,8 @@ from uuid import uuid4
 from django.conf import settings
 import re
 import os
+
+# User = get_user_model()
 
 
 

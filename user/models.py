@@ -3,8 +3,21 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
 from category.models import Favorite
 from django.shortcuts import reverse
-from nojavan.utils import hash_file_name
+from uuid import uuid4
+from django.conf import settings
+import os
+# from nojavan.utils import hash_file_name
 # Create your models here.
+
+def hash_file_name(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f"{uuid4()}.{ext}"
+    try:
+        klass = instance._meta.model
+    except:
+        klass = instance.__class__.__name__
+    return os.path.join(settings.MEDIA_ROOT, str(klass), '%Y-%m-%d', filename)
+
 
 class User(AbstractUser):
     """a custome user model that use phone number to login

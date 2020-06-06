@@ -23,7 +23,7 @@ from .utils import export_excel
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('ckeditor/', include('ckeditor_uploader.urls')),
+    # path('ckeditor/', include('ckeditor_uploader.urls')),
     path('likedislike/', include(('likedislike.urls', 'likedislike'), namespace='likedislike')),
     path('posts/', include(('post.urls', 'post'), namespace='post')),
     path('track/', include(('usertracker.urls', 'usertracker'), namespace='usertracker')),

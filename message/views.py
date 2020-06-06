@@ -33,25 +33,33 @@ def chat_room(request, chatroom_id):
 # @require_POST
 def send_message(request, receivers=None, content=None, room_ids=None):
     if receivers:
-        all_receivers = list(dict.fromkeys(re.findall(r'\d+', receivers + str(request.user.id))))
-        room_ids = (room_id for room_id in re.findall(r'\d+', room_ids))
+        all_receivers = list(dict.fromkeys(re.findall(r'\d+', receivers)))
+        # all_receivers.append(request.user.id)
+        print(all_receivers)
+        # print(room_ids)
+        if room_ids:
+            room_ids = (room_id for room_id in re.findall(r'\d+', room_ids))
         for i, id in enumerate(all_receivers, 1):
-            if i >= len(all_receivers): break
             message_form = SendMessageForm(request.POST, user=request.user, ajax_content=content)
             if message_form.is_valid(): 
                 # user = get_object_or_404(User, id=int(id))
                 try:
                     room = ChatRoom.objects.get(id=int(room_ids.__next__()))
-                except ChatRoom.DoesNotExist:
+                    # print(room)
+                except (ChatRoom.DoesNotExist, Exception):
                     room = ChatRoom.objects.create()
                     room.receivers.add(int(id))
+                    room.receivers.add(request.user)
                 message_form.instance.room = room
                 # message_form.instance.receiver = user
                 message_form.save()
-                    # return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
+                if i >= len(all_receivers): 
+                    messages.success(request, 'پیام با موفقیت ارسال شد')
+                    return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
             else:
                 messages.error(request, str(message_form.errors), extra_tags='failed_bulk_message')
                 logger.error(str(message_form.errors.as_data()))
+                # return HttpResponse(message_form.errors)
     else:
         message_form = SendMessageForm(request.POST, user=request.user)
         if message_form.is_valid(): 

@@ -1,10 +1,11 @@
+from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nojavan.settings')
-
-app = Celery('nojavan')
+redis_url = 'redis://redis:6379'
+app = Celery('nojavan', broker_pool_limit=1, broker=redis_url, result_backend=redis_url)
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 

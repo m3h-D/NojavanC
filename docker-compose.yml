@@ -6,61 +6,79 @@ services:
       context: .
       dockerfile: Dockerfile
     ports: 
-      - "8000": "8000"
+      - "8000:8000"
     volumes: 
-      - ../nojavanclub:/nojavanclub
+      - .:/nojavanclub
       - nojavanclub_static_volume:/nojavanclub/static
       - nojavanclub_files_volume:/nojavanclub/media
-    command: "python manage.py wait_for_db && python manage.py collectstatic --no-input && python manage.py migrate"
+    command: sh -c "python manage.py waitdb && 
+                    python manage.py collectstatic --noinput && 
+                    python manage.py migrate && 
+                    python manage.py runserver 0.0.0.0:8000"
+                    # gunicorn --bind :8000 nojavan.wsgi:application"
     restart: always
+    env_file: 
+      .env
     networks:
       - nojavan_network
       - nginx_network
     depends_on:
-      - nojavan_postgresql # yani harvaght postgres umad bala in app ham ejra she(nojavanclub)
-    # environment: 
-    #   - DB_HOST=nojavan_postgresql
-    #   - DB_NAME=nojavan_db
-    #   - DB_USER=postgres
-    #   - DB_PASSWORD=supersecret123
+      - celery
+      - celery-beat
+      - nojavan_postgresql
+      - redis
+
 
 
   nojavan_postgresql:
-    image: postgres
+    image: postgres:12
     container_name: nojavan_postgresql
     volumes:
       - nojavan_postgresql:/var/lib/postgresql/data
     restart: always
     env_file: .env
     ports:
-      - "5431": "5432"
+      - "5431:5432"
     networks:
       - nojavan_network
-    # environment: 
-    #   - POSTGRES_DB=nojavan_db
-    #   - POSTGRES_USER=postgres
-    #   - POSTGRES_PASSWORD=supersecret123
+
 
   redis:
-    image: "redis:alpine"
+    container_name: 'redis_container'
+    image: "redis:latest"
+    restart: always
+    ports: 
+      - "6379:6379"
+    command: "redis-server"
+
 
 
   celery:
-    build: .
-    command: celery -A nojavan worker -l info
+    build:
+      context: .
+    command: celery -A nojavan worker -l debug
     volumes:
-      - ../nojavanclub:/nojavanclub
+      - .:/nojavanclub
+    # environment:
+    #   TEST_BROKER: redis://redis:6379
     depends_on:
       - nojavan_postgresql
       - redis
+    restart: always
+    env_file: .env
+    
   celery-beat:
-    build: .
-    command: celery -A nojavan beat -l info
+    build:
+      context: .
+    command: celery -A nojavan beat -l debug
     volumes:
-      - ../nojavanclub:/nojavanclub
+      - .:/nojavanclub
     depends_on:
       - nojavan_postgresql
       - redis
+    restart: always
+    env_file: .env
+    
 
 volumes:
   nojavan_postgresql:

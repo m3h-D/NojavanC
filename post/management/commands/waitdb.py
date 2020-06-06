@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        self.stdout.wirte("Waiting for database to ready ...")
+        self.stdout.write("Waiting for database to ready ...")
         db_con = None
         while not db_con:
             try:

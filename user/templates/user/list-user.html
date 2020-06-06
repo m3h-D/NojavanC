@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load user_tags %}
 {% block title %}لیست کاربران{% endblock %}
 {% block content %}
 <div>
@@ -99,7 +100,8 @@
         {% if request.user.is_staff %}
 
         <input class="checkbox-action" type="checkbox" name="checkbox_action" id="checkbox-action" value="{{user.id}}">
-        <input class="chatroom-id" type="hidden" name="room_ids" id="chatroom-id" value="{% if request.user.chatroomreceivers == user.chatroomreceivers %}{{user.chatroomreceivers.first}}{% endif %}">
+        {% message_receivers request.user.chatroomreceivers user as receivers %}
+        <input class="chatroom-id" type="hidden" name="room_ids" id="chatroom-id" value="{% if receivers %}{{user.chatroomreceivers.last.id}}{% endif %}">
 
         <!-- ---- accept or decline user ------------------------- -->
         {% if user.is_accepted == True %}
@@ -140,7 +142,7 @@
         <!-- --------------------------------------- -->
         
         <!-- --------------- send message ------------------------- -->
-        <!-- <form action="{% url 'message:send_message' %}" method="post">{% csrf_token %}
+        <!-- <form action="" method="post">{% csrf_token %}
             <input type="text" name="content" id="">
             <button type="submit">ارسال</button>
         </form> -->
@@ -158,7 +160,7 @@
     let roomIds = new Array();
     $('.chatroom-id').each(function(){
     if ($('.chatroom-id').val().length > 0){
-        roomIds.push(this.$('.chatroom-id').val()); 
+        roomIds.push($('.chatroom-id').val()); 
         // values.push({ name: this.name, value: this.value }); 
     }; 
     });
@@ -188,6 +190,7 @@
         let action = $(this).data('action')
         let url = $(this).data('url');
         let csrfToken = $(this).data('csrf-token');
+        console.log(roomIds);
             $.ajax(
             {
                 url: url,
@@ -195,6 +198,7 @@
                 traditional: true,
                 data: { ids: userId, action: action, chatroom_id: roomIds, content: content, csrfmiddlewaretoken: csrfToken },
                 success: function (data) {
+                    console.log(roomIds);
                     if (action == 'export' || action == 'message'){
                         window.location = data.response.redirect;
                         $("#ajax-response").html(data.response.message);

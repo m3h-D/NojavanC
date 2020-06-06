@@ -13,8 +13,9 @@ from urllib.parse import urlsplit
 from dateutil import parser
 from .forms import *
 from .tokens import account_activation_token
-from nojavan.utils import send_email, self_or_admin, search_engine, export_excel
-from nojavan.engine.smspanel import send_sms
+from .tasks import send_email
+from nojavan.utils import self_or_admin, search_engine, export_excel
+# from nojavan.engine.smspanel import send_sms
 from threading import Thread
 from .models import Group
 from datetime import datetime
@@ -146,8 +147,9 @@ def forget_password(request):
                 Uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = account_activation_token.make_token(user)
                 domain = f"{urlsplit(request.build_absolute_uri(None)).scheme}://{get_current_site(request)}"
-                Thread(target=send_email, args=(request,), kwargs={"domain": domain,
-                    "to": [user.email] , 'template': template, 'sub': sub, 'messages': [Uid, token]}).start()
+                send_email.delay()
+                # Thread(target=send_email, args=(request,), kwargs={"domain": domain,
+                #     "to": [user.email] , 'template': template, 'sub': sub, 'messages': [Uid, token]}).start()
                 messages.success(request, 'لینک فراموشی برای ایمیل شما ارسال شد', extra_tags='forget_password_success')
                 return redirect('user:login')
         else:
@@ -263,7 +265,9 @@ def user_action(request):
             redirect = reverse('export_excel', kwargs={'model': 'user', 'action': str(user_ids)})
             response = 'عملیات اکسل با موفقیت انجام شد'
         elif action == 'message':
-            redirect = reverse('message:send_message', kwargs={'receivers': str(user_ids), 'content': str(request.POST.get("content")), 'room_ids': str(request.POST.get('room_id'))})
+            redirect = reverse('message:send_message', kwargs={'receivers': str(user_ids), 
+                               'content': str(request.POST.get("content")), 
+                               'room_ids': str(request.POST.getlist('chatroom_id'))})
             response = 'پیام ها با موفقیت ارسال شدند'
         return JsonResponse({'response': {"message": response, 'redirect': redirect}})
     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))

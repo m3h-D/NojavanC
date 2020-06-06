@@ -21,10 +21,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = SECRET_KEY
+# SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = 'asdfasdf897weur4jh2398yhfsdkajcfh*(&*(@#jihiudy9uaisf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.environ.get('PROJECT_DEBUG') else False
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -44,12 +45,13 @@ INSTALLED_APPS = [
     'post.apps.PostConfig',
     'rate.apps.RateConfig',
     'category.apps.CategoryConfig',
-    'comment.apps.CommentConfig',
+    # 'comment.apps.CommentConfig',
     'likedislike.apps.LikedislikeConfig',
     'usertracker.apps.UsertrackerConfig',
+    # 'ckeditor',
+    # 'ckeditor_uploader',
     'django_user_agents',
-    'ckeditor',
-    'ckeditor_uploader',
+    'celery',
 ]
 
 MIDDLEWARE = [
@@ -88,19 +90,38 @@ AUTH_USER_MODEL = 'user.User'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         # 'ENGINE': 'django.db.backends.sqlite3',
+#         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('DB_NAME'),
+#         'USER': os.getenv('DB_USER'),
+#         'PASSWORD': os.getenv('DB_PASSWORD'),
+#         'HOST': os.getenv('DB_HOST'),
+#         'PORT': os.getenv('DB_PORT'),
+#     }
+# }
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
-        'HOST': 'nojavan_postgresql',
-        'PORT': DB_PORT,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
+
+
+# Cache backend is optional, but recommended to speed up user agent parsing
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#         'LOCATION': '127.0.0.1:11211',
+#     }
+# }
+
+# Name of cache backend to cache user agents. If it not specified default
+# cache alias will be used. Set to `None` to disable caching.
+# USER_AGENTS_CACHE = 'default'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -156,24 +177,30 @@ STATICFILES_DIRS = [
 
 
 # Redis for CeleryBeat
+from celery.schedules import crontab
+# CELERY_BROKER_URL = 'redis://redis:6379'
+# CELERY_RESULT_BACKEND = 'redis://redis:6379'
+# CELERY_ACCEPT_CONTENT = ['application/json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_BEAT_SCHEDULE = {
+#     'hello': {
+#         'task': 'user.tasks.send_email',
+#         'schedule': 5.0,  # execute every minute
+#     }
+# }
 
-CELERY_BROKER_URL = 'redis://redis:6379'
-CELERY_RESULT_BACKEND = 'redis://redis:6379'
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
 
 
+# CKEDITOR_UPLOAD_PATH = "uploads/"
+# # CKEDITOR_BASEPATH = os.path.join(BASE_DIR, "/my_static/ckeditor/ckeditor/")
 
-CKEDITOR_UPLOAD_PATH = "uploads/"
-# CKEDITOR_BASEPATH = os.path.join(BASE_DIR, "/my_static/ckeditor/ckeditor/")
-
-CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'Base',
-        'width':'100%',
-    }
-}
+# CKEDITOR_CONFIGS = {
+#     'default': {
+#         'toolbar': 'Base',
+#         'width':'100%',
+#     }
+# }
 
 
 

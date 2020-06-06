@@ -2,7 +2,7 @@ version: '3'
 
 
 services:
-    nginx:
+    lnginx:
         container_name: nginx
         build: 
             context: .
@@ -14,7 +14,6 @@ services:
             - nojavanclub_files_volume:/nojavanclub/media
         networks:
             - nginx_network
-
 volumes: 
     nojavanclub_static_volume:
         external: true
