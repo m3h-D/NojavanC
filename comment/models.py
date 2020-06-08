@@ -26,9 +26,9 @@ class Comments(models.Model):
     def __str__(self):
         """neshun dadane karbar"""
         if self.parent is None:
-            return "{} . کامنت گذاشت برای {} است".format(self.user.username,  self.content_object.title)
+            return "{} . کامنت گذاشت برای {} است".format(self.user.username,  self.post.title)
         else:
-            return "جواب {} به کامنت {} در پست {}".format(self.user.username, self.parent.user.username, self.content_object.title)
+            return "جواب {} به کامنت {} در پست {}".format(self.user.username, self.parent.user.username, self.post.title)
 
     def children(self):
         """comment haye marboot be parent o barmigardoone """

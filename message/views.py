@@ -59,6 +59,7 @@ def send_message(request, receivers=None, content=None, room_ids=None):
             else:
                 messages.error(request, str(message_form.errors), extra_tags='failed_bulk_message')
                 logger.error(str(message_form.errors.as_data()))
+                return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
                 # return HttpResponse(message_form.errors)
     else:
         message_form = SendMessageForm(request.POST, user=request.user)
@@ -70,6 +71,7 @@ def send_message(request, receivers=None, content=None, room_ids=None):
         else:
             messages.error(request, str(message_form.errors), extra_tags='failed__message')
             logger.error(str(message_form.errors.as_data()))
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
 
 

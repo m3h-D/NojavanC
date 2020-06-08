@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, login, logout, get_user_model, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import SuspiciousOperation
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
@@ -14,13 +15,12 @@ from dateutil import parser
 from .forms import *
 from .tokens import account_activation_token
 from .tasks import send_email
-from nojavan.utils import self_or_admin, search_engine, export_excel
+from nojavan.utils import self_or_admin, search_engine, export_excel, logout_required
 # from nojavan.engine.smspanel import send_sms
 from threading import Thread
 from .models import Group
 from datetime import datetime
 from django.utils import timezone
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.admin.views.decorators import staff_member_required
 import logging
 
@@ -32,11 +32,11 @@ User = get_user_model()
 # Create your views here.
 
 # -----------------------[authentications]--------------------------
-
+@logout_required
 def login_view(request):
     next = request.GET.get('next')
-    if request.user.is_authenticated:
-        return redirect(reverse('user:profile_view', kwargs={"user_username": request.user.username}))
+    # if request.user.is_authenticated:
+    #     return redirect(reverse('user:profile_view', kwargs={"user_username": request.user.username}))
     form = LoginForm(request.POST or None)
     if form.is_valid():
         username = form.cleaned_data.get('username')
@@ -52,15 +52,15 @@ def login_view(request):
         logger.error(str(form.errors.as_data()))
     return render(request, 'user/login.html', {"form": form})
 
-
+@login_required
 def profile_view(request, user_username):
     user = get_object_or_404(User, username=user_username)
     return render(request, 'user/profile.html', {"user": user})
 
-
+@logout_required
 def register_view(request):
-    if request.user.is_authenticated:
-        return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
+    # if request.user.is_authenticated:
+    #     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
     time = request.session.get('register_timer')
     timer = None
     if time:
@@ -76,11 +76,11 @@ def register_view(request):
             request.session['register_timer'] = str(timer)
             # send_sms(sms_validate, register_form.instance.phone, 'register')
             print(sms_validate)
-            # messages.success(request, 'ثبت نام شما با موفقیت انجام شد', extra_tags='register_success')
             return redirect('user:verification_view')
         else:
             messages.error(request, str(register_form.errors), extra_tags='register_failed')
             logger.error(str(register_form.errors.as_data()))
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
     return render(request, 'user/register.html', {"register_form": register_form})
 
 
@@ -106,7 +106,7 @@ def send_sms_again(request):
     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
 
-
+@logout_required
 def verification_view(request):
     if not 'sms_validate' in request.session:
         return redirect("user:register_view")
@@ -131,10 +131,12 @@ def verification_view(request):
         else:
             messages.error(request, str(verify_form.errors), extra_tags='verification_failed')
             logger.error(str(verify_form.errors.as_data()))
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
+            
     return render(request, 'user/verify.html', {"verify_form": verify_form})
 
 
-
+@logout_required
 def forget_password(request):
     form = ForgetPasswordForm(request.POST or None)
     if request.method == "POST":
@@ -148,13 +150,12 @@ def forget_password(request):
                 token = account_activation_token.make_token(user)
                 domain = f"{urlsplit(request.build_absolute_uri(None)).scheme}://{get_current_site(request)}"
                 send_email.delay(domain=domain, to=[user.email], template=template, sub=sub, messages=[Uid, token])
-                # Thread(target=send_email, args=(request,), kwargs={"domain": domain,
-                #     "to": [user.email] , 'template': template, 'sub': sub, 'messages': [Uid, token]}).start()
                 messages.success(request, 'لینک فراموشی برای ایمیل شما ارسال شد', extra_tags='forget_password_success')
                 return redirect('user:login')
         else:
             messages.error(request, str(form.errors), extra_tags='forget_password_errors')
             logger.error(str(form.errors.as_data()))
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
     return render(request, 'user/forget-password.html', {'form': form})
 
@@ -181,6 +182,7 @@ def new_password(request, uidb64, token):
             else:
                 messages.error(request, str(form.errors), extra_tags='new_password_errors')
                 logger.error(str(form.errors.as_data()))
+                return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
     else:
         logger.error('لینک نا معتبر است.')
@@ -191,7 +193,7 @@ def new_password(request, uidb64, token):
 
 # --------------------[ Group ]------------------------------
 
-
+@login_required
 def add_to_group(request):
     if request.is_ajax():
         user_id = request.POST.get('user_id')
@@ -207,7 +209,7 @@ def add_to_group(request):
         return JsonResponse({"response": response})
     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
-
+@login_required
 def create_group(request):
     group_form = GroupForm(request.POST or None, request.FILES or None, request=request)
     if request.method == "POST":
@@ -218,6 +220,7 @@ def create_group(request):
         else:
             messages.error(request, str(group_form.errors), extra_tags='failed_create_group')
             logger.error(str(group_form.errors.as_data()))
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
     return render(request, 'user/create-group.html', {'group_form': group_form})
     
@@ -230,7 +233,7 @@ def group_detail(request, group_slug):
       
 # -----------------------------[Managing]------------------------------
 
-
+@login_required
 def create_user(request):
     user_form = CreateUserForm(request.POST or None)
     if user_form.is_valid():
@@ -240,6 +243,8 @@ def create_user(request):
     else:
         messages.error(request, str(user_form.errors), extra_tags='failed_create_user')
         logger.error(str(user_form.errors.as_data()))
+        return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
+
     return render(request, 'user/create-user.html', {"user_form": user_form})
 
 
@@ -250,7 +255,7 @@ def list_user(request):
         users = search_engine(searches, users)
     return render(request, 'user/list-user.html', {'users': users})
 
-
+@login_required
 def user_action(request):
     if request.is_ajax():
         action = request.POST.get('action')
@@ -274,7 +279,7 @@ def user_action(request):
 
         
 
-
+@login_required
 def delete_user(request):
     if request.is_ajax():
         user_id = request.POST.get('user_id')
@@ -286,7 +291,7 @@ def delete_user(request):
         return JsonResponse({"response": response})
     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
-
+@login_required
 def edit_user(request, user_username):
     # user = get_object_or_404(User, username=user_username)
     user = self_or_admin(request, User, username=user_username)
@@ -302,11 +307,12 @@ def edit_user(request, user_username):
         else:
             logger.error(f"{edit_user_form.errors.as_data()} \n {edit_profile_form.errors.as_data()}")
             messages.error(request, f"{edit_user_form.errors} \n {edit_profile_form.errors}", extra_tags='edit_account_failed')
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
     return render(request, 'user/edit-user.html', {'edit_user_form': edit_user_form, 'edit_profile_form': edit_profile_form})
 
 
-
+@login_required
 def follow_user(request):
     if request.is_ajax():
         user_id = request.POST.get("user_id")

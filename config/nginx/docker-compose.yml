@@ -2,8 +2,8 @@ version: '3'
 
 
 services:
-    lnginx:
-        container_name: nginx
+    nginx:
+        container_name: nojavan_nginx
         build: 
             context: .
             dockerfile: Dockerfile

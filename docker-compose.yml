@@ -2,6 +2,7 @@ version: '3'
 
 services:
   nojavanclub:
+    container_name: nojavan_app
     build:
       context: .
       dockerfile: Dockerfile
@@ -32,7 +33,7 @@ services:
 
   nojavan_postgresql:
     image: postgres:12
-    container_name: nojavan_postgresql
+    container_name: nojavan_db
     volumes:
       - nojavan_postgresql:/var/lib/postgresql/data
     restart: always
@@ -44,7 +45,7 @@ services:
 
 
   redis:
-    container_name: 'redis_container'
+    container_name: redis
     image: "redis:latest"
     command: redis-server
     networks:
@@ -55,7 +56,7 @@ services:
   celery:
     build: .
     command: sh -c "celery -A nojavan worker -l info"
-    container_name: celery_worker
+    container_name: celery
     env_file: .env
     depends_on:
       - nojavanclub
@@ -71,6 +72,7 @@ services:
     build:
       context: .
     command: sh -c "celery -A nojavan beat -l info"
+    container_name: celery_beat
     volumes:
       - .:/nojavanclub
     depends_on:

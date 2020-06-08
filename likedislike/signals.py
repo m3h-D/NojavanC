@@ -9,15 +9,15 @@ def like_dislike_receiver(sender, ip_address, likedislike, request, *args, **kwa
         sender.delete()
     elif sender.likedislike == 'like' and likedislike == 'dislike':
         sender.likedislike = 'dislike'
-        if request.user.is_authenticated:
-            sender.ip_address = ip_address
-            sender.user = request.user
+        # if request.user.is_authenticated:
+        #     sender.ip_address = ip_address
+        #     sender.user = request.user
         sender.save()
     elif sender.likedislike == 'dislike' and likedislike == 'like':
         sender.likedislike = 'like'
-        if request.user.is_authenticated:
-            sender.ip_address = ip_address
-            sender.user = request.user
+        # if request.user.is_authenticated:
+        #     sender.ip_address = ip_address
+        #     sender.user = request.user
         sender.save()
     return sender
 

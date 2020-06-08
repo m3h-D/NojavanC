@@ -13,9 +13,10 @@ def delete_comment(request):
     
     if request.is_ajax():
         comment_id = request.POST.get('comment_id')
+        comment = get_object_or_404(Comments, id=comment_id)
         if request.user == comment.user or request.user.is_admin or request.user.is_staff:
-            get_object_or_404(Comments, id=comment_id).delete()
             messages.success(request, f"کامنت {comment.content} با موفقیت حذف شد")
+            comment.delete()
             return JsonResponse({"success": "success"})
     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
@@ -23,12 +24,12 @@ def delete_comment(request):
 def approve_comment(request):
     if request.is_ajax():
         comment_id = request.POST.get('comment_id')
-        if request.user.is_staff or request.user.is_admin:
+        if request.user.is_staff:
             comment = get_object_or_404(Comments, id=comment_id)
-            if comment.approved = True:
+            if comment.approved == True:
                 comment.approved = False
             else:
-                comment.approved = False
+                comment.approved = True
             comment.save()
             messages.success(request, "کامنت مورد تایید شما قرار گرفت")
             return JsonResponse({"success": "success"})
@@ -45,7 +46,7 @@ def send_comment(request):
         if parent_id:
             try:
                 parent_obj = Comments.objects.filter(
-                    id=parent_id).order_by('timestamp').first()
+                    id=parent_id).last()
             except:
                 parent_obj = None
         comments_form = CommentForm(request.POST or None)

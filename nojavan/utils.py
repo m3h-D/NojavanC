@@ -7,7 +7,7 @@ from functools import wraps
 # from user.models import User
 # from django.contrib.auth import get_user_model
 from datetime import datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from openpyxl import Workbook
 from uuid import uuid4
 from django.conf import settings
@@ -82,10 +82,10 @@ def create_slug(instance):
     """automatic barassasse title slug misaze.
         age slug vase ye posti mojood bud id post ham mizare kenaresh ta unique bashe
     """
-    try:
-        slug = slugify(("{}").format(instance.title), allow_unicode=True)
-    except:
-        slug = slugify(("{}").format(instance.title), allow_unicode=True)
+    # try:
+    slug = slugify(("{}").format(instance.title), allow_unicode=True)
+    # except:
+    #     slug = slugify(("{}").format(instance.title), allow_unicode=True)
     qs = instance.__class__.objects.filter(slug=slug)
     if qs.exists():
         slug = ("{}-{}").format(slug, qs.first().id)
@@ -170,8 +170,9 @@ def validate_image_extention(value):
     import os
     from django.core.exceptions import ValidationError
     ext = os.path.splitext(value.name)[-1]
-    valid_extentions = ['jpg', 'png', 'jpeg']
-    if not ext.lower() in valid_extentions:
+    print(ext)
+    valid_extentions = ['.jpg', '.png', '.jpeg']
+    if ext.lower() not in valid_extentions:
         raise ValidationError("فایل مورد نظر پشتیبانی نمی شود.")
 
 
@@ -183,3 +184,12 @@ def hash_file_name(instance, filename):
     except:
         klass = instance.__class__.__name__
     return os.path.join(settings.MEDIA_ROOT, str(klass), '%Y-%m-%d', filename)
+
+def logout_required(function):
+    @wraps(function)
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
+        else:
+            return function(request, *args, **kwargs)
+    return wrapper

@@ -31,8 +31,7 @@ class UserTrackerMiddleware:
                     for key, val in list(match.kwargs.items())[:1]:
                         key_val = str(key).split('_')
                         myfilter[f'{key_val[1]}'] = val
-                        model_qs = ContentType.objects.get(model=str(key_val[0]))
-                        Model = model_qs.model_class()
+                        Model = ContentType.objects.get(model=str(key_val[0])).model_class()
                         instance = Model.objects.get(**myfilter)
             except Exception as e:
                 # print(str(e))
