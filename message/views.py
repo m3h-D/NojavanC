@@ -31,20 +31,20 @@ def chat_room(request, chatroom_id):
 
 
 # @require_POST
-def send_message(request, receivers=None, content=None, room_ids=None):
+def send_message(request, receivers=None, content=None, chatroom_id=None):
     if receivers:
         all_receivers = list(dict.fromkeys(re.findall(r'\d+', receivers)))
         # all_receivers.append(request.user.id)
         print(all_receivers)
-        # print(room_ids)
-        if room_ids:
-            room_ids = (room_id for room_id in re.findall(r'\d+', room_ids))
+        # print(chatroom_id)
+        if chatroom_id:
+            chatroom_id = (room_id for room_id in re.findall(r'\d+', chatroom_id))
         for i, id in enumerate(all_receivers, 1):
             message_form = SendMessageForm(request.POST, user=request.user, ajax_content=content)
             if message_form.is_valid(): 
                 # user = get_object_or_404(User, id=int(id))
                 try:
-                    room = ChatRoom.objects.get(id=int(room_ids.__next__()))
+                    room = ChatRoom.objects.get(id=int(chatroom_id.__next__()))
                     # print(room)
                 except (ChatRoom.DoesNotExist, Exception):
                     room = ChatRoom.objects.create()
@@ -64,7 +64,7 @@ def send_message(request, receivers=None, content=None, room_ids=None):
     else:
         message_form = SendMessageForm(request.POST, user=request.user)
         if message_form.is_valid(): 
-            room = get_object_or_404(ChatRoom, id=int(room_ids))
+            room = get_object_or_404(ChatRoom, id=int(chatroom_id))
             message_form.instance.room = room
             message_form.save()
             return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
